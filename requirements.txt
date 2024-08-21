@@ -1,0 +1,4 @@
+kafka-python
+spark
+pyspark
+cassandra-driver

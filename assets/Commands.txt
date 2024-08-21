@@ -1,0 +1,2 @@
+#to connect to cassandra
+sudo docker exec -it cassandra cqlsh localhost 9042  -u cassandra -p cassandra
