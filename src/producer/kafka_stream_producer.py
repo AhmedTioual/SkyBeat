@@ -4,6 +4,7 @@ from kafka import KafkaProducer
 import time
 import logging
 import random
+from datetime import datetime
 
 city_name = "Marrakech"
 api_key = "6bc10cad84f55de2373784c834d75633"
@@ -55,16 +56,23 @@ def stream_data(
         while attempt < retry_attempts:
             try:
                 result = get_weather(api_key, city_name)
-
+                
                 # Modify the 'dt' field to the current timestamp
-                result['dt'] = int(time.time())
+                result['dt'] = datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
+                
+                result['weather'][0]['icon'] = f"https://openweathermap.org/img/wn/{result['weather'][0]['icon']}@2x.png"
                 
                 # Update the temperature
                 current_temp = result['main']['temp']
                 
                 if previous_temp is not None:
-                    # Simulate a small change in temperature
                     result['main']['temp'] = previous_temp + random.uniform(-0.5, 0.5)
+                    result['main']['humidity'] = int(result['main']['humidity'] + random.uniform(-0.5, 0.5))
+                    result['main']['pressure'] = int(result['main']['pressure'] + random.uniform(-0.5, 0.5))
+                    result['wind']['speed'] = result['wind']['speed'] + random.uniform(-0.5, 0.5)
+                    result['wind']['deg'] = int(result['wind']['deg'] + random.uniform(-0.5, 0.5))
+                    result['clouds']['all'] = int(result['clouds']['all'] + random.uniform(-0.2, 0.2))
+                    result['visibility'] = int(result['visibility'] + random.uniform(-0.2, 0.2))
                 else:
                     # Initialize previous_temp if it's the first iteration
                     previous_temp = current_temp
@@ -73,7 +81,7 @@ def stream_data(
                 previous_temp = result['main']['temp']
                 
                 producer.send(topic, json.dumps(result).encode('utf-8'))
-                logging.info(f"Data sent to topic '{topic}': {result['main']['temp']}")
+                logging.info(f"Data sent to topic '{topic}': {result}")
                 break  # Exit retry loop on success
             except Exception as e:
                 logging.error(f"Attempt {attempt + 1} failed: {e}")
@@ -84,7 +92,7 @@ def stream_data(
             logging.error("Max retry attempts reached. Skipping this iteration.")
         
         # Wait 5 seconds before sending the next data
-        time.sleep(5)
+        time.sleep(2)
     
     producer.close()
 

@@ -1,7 +1,7 @@
 import logging
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col, explode
-from pyspark.sql.types import StructType, StructField, StringType, FloatType, IntegerType, ArrayType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, FloatType, ArrayType, TimestampType
 from cassandra.cluster import Cluster
 
 # Define schema for the weather data
@@ -36,7 +36,7 @@ def get_weather_schema():
         StructField("clouds", StructType([
             StructField("all", IntegerType(), False)
         ]), False),
-        StructField("dt", IntegerType(), False),
+        StructField("dt",StringType(), False),
         StructField("sys", StructType([
             StructField("type", IntegerType(), False),
             StructField("id", IntegerType(), False),
@@ -76,7 +76,7 @@ def create_keyspace(session):
 def create_table(session):
     session.execute("""
     CREATE TABLE IF NOT EXISTS weather_data.weather_info (
-        id INT PRIMARY KEY,
+        id INT,
         coord_lon FLOAT,
         coord_lat FLOAT,
         weather_id INT,
@@ -96,7 +96,7 @@ def create_table(session):
         wind_speed FLOAT,
         wind_deg INT,
         clouds_all INT,
-        dt INT,
+        dt TEXT PRIMARY KEY,
         sys_type INT,
         sys_id INT,
         sys_country TEXT,
@@ -133,6 +133,7 @@ def connect_to_kafka(spark_conn):
             .option('kafka.bootstrap.servers', 'localhost:9092') \
             .option('subscribe', 'weather_topic') \
             .option('startingOffsets', 'earliest') \
+            .option("failOnDataLoss", "false")\
             .load()
         logging.info("Kafka dataframe created successfully")
     except Exception as e:
