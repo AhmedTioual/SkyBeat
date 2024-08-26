@@ -6,8 +6,8 @@ import logging
 import random
 from datetime import datetime
 
-city_name = "Marrakech"
-api_key = "6bc10cad84f55de2373784c834d75633"
+city_name = "CITY"
+api_key = "Your KEY"
 
 def get_weather(api_key, city):
     url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}"
