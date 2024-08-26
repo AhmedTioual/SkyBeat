@@ -1,2 +1,3 @@
 #to connect to cassandra
 sudo docker exec -it cassandra cqlsh localhost 9042  -u cassandra -p cassandra
+spark-submit --master spark://172.26.0.2:7077 src/consumers/spark_to_cassandra.py 
